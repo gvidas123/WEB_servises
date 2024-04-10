@@ -30,22 +30,6 @@ class Enrolment(db.Model):
     course = db.Column('course_id', db.Integer, db.ForeignKey('course.id'), primary_key=True)
 
 
-@flask_app.route('/students', methods=['POST'])
-def add_student():
-    data = request.json
-    name = data.get('name')
-    email = data.get('email')
-    print("XD ADD")
-    if not name or not email:
-        return jsonify({'error': 'Name and email are required'}), 400
-
-    new_student = Student(name=name, email=email)
-    db.session.add(new_student)
-    db.session.commit()
-
-    return jsonify({'message': 'Student added successfully', 'student': {'id': new_student.id, 'name': new_student.name, 'email': new_student.email}})
-
-
 @flask_app.route('/students', methods=['GET'])
 def get_students():
     students = Student.query.all()
@@ -63,30 +47,43 @@ def get_students():
     return jsonify({'students': output})
 
 
-@flask_app.route('/enrolment', methods=['GET'])
+@flask_app.route('/enrolments', methods=['GET'])
 def get_enrolment():
     students = Enrolment.query.all()
     output = [{'student': student.student, 'course': student.course, } for student in students]
     return jsonify({'enrolled': output})
 
 
-@flask_app.route('/students/<int:student_id>/un_enroll/<int:course_id>', methods=['DELETE'])
-def un_enroll_student(student_id, course_id):
-    student = Student.query.get(student_id)
-    if not student:
-        return jsonify({'error': 'Student not found'}), 404
+@flask_app.route('/courses', methods=['POST'])
+def add_course():
+    data = request.json
+    title = data.get('title')
+    description = data.get('description')
 
-    course = Course.query.get(course_id)
-    if not course:
-        return jsonify({'error': 'Course not found'}), 404
+    if not title or not description:
+        return jsonify({'error': 'Title and description are required'}), 400
 
-    if course not in student.courses:
-        return jsonify({'error': 'Student is not enrolled in this course'}), 400
-
-    student.courses.remove(course)
+    new_course = Course(title=title, description=description)
+    db.session.add(new_course)
     db.session.commit()
 
-    return jsonify({'message': f'Student with ID {student_id} un enrolled from course with ID {course_id} successfully'})
+    return jsonify({'message': 'Course added successfully', 'course': {'id': new_course.id, 'title': new_course.title, 'description': new_course.description}})
+
+
+@flask_app.route('/students', methods=['POST'])
+def add_student():
+    data = request.json
+    name = data.get('name')
+    email = data.get('email')
+    print("XD ADD")
+    if not name or not email:
+        return jsonify({'error': 'Name and email are required'}), 400
+
+    new_student = Student(name=name, email=email)
+    db.session.add(new_student)
+    db.session.commit()
+
+    return jsonify({'message': 'Student added successfully', 'student': {'id': new_student.id, 'name': new_student.name, 'email': new_student.email}})
 
 
 @flask_app.route('/students/<int:student_id>/enroll', methods=['POST'])
@@ -172,11 +169,12 @@ def delete_all_students():
     return jsonify({'message': f'{num_deleted} students deleted successfully'})
 
 
-@flask_app.route('/courses', methods=['GET'])
-def get_courses():
-    courses = Course.query.all()
-    output = [{'id': course.id, 'title': course.title, 'description': course.description} for course in courses]
-    return jsonify({'courses': output})
+@flask_app.route('/courses', methods=['DELETE'])
+def delete_all_courses():
+    # Delete all students from the database
+    num_deleted = Course.query.delete()
+    db.session.commit()
+    return jsonify({'message': f'{num_deleted} students deleted successfully'})
 
 
 @flask_app.route('/courses/<int:course_id>', methods=['DELETE'])
@@ -191,30 +189,30 @@ def delete_course(course_id):
     return jsonify({'message': f'Course with ID {course_id} deleted successfully'})
 
 
-@flask_app.route('/courses', methods=['POST'])
-def add_course():
-    data = request.json
-    title = data.get('title')
-    description = data.get('description')
+@flask_app.route('/students/<int:student_id>/enroll/<int:course_id>', methods=['DELETE'])
+def un_enroll_student(student_id, course_id):
+    student = Student.query.get(student_id)
+    if not student:
+        return jsonify({'error': 'Student not found'}), 404
 
-    if not title or not description:
-        return jsonify({'error': 'Title and description are required'}), 400
+    course = Course.query.get(course_id)
+    if not course:
+        return jsonify({'error': 'Course not found'}), 404
 
-    new_course = Course(title=title, description=description)
-    db.session.add(new_course)
+    if course not in student.courses:
+        return jsonify({'error': 'Student is not enrolled in this course'}), 400
+
+    student.courses.remove(course)
     db.session.commit()
 
-    return jsonify({'message': 'Course added successfully', 'course': {'id': new_course.id, 'title': new_course.title, 'description': new_course.description}})
+    return jsonify({'message': f'Student with ID {student_id} un enrolled from course with ID {course_id} successfully'})
 
 
-@flask_app.route('/courses', methods=['DELETE'])
-def delete_all_courses():
-    # Delete all students from the database
-    num_deleted = Course.query.delete()
-    db.session.commit()
-    return jsonify({'message': f'{num_deleted} students deleted successfully'})
-
-
+@flask_app.route('/courses', methods=['GET'])
+def get_courses():
+    courses = Course.query.all()
+    output = [{'id': course.id, 'title': course.title, 'description': course.description} for course in courses]
+    return jsonify({'courses': output})
 
 
 if __name__ == '__main__':
