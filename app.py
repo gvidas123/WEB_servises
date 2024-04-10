@@ -47,18 +47,18 @@ def get_students():
     return jsonify({'students': output})
 
 
-@flask_app.route('/courses', methods=['GET'])
-def get_courses():
-    courses = Course.query.all()
-    output = [{'id': course.id, 'title': course.title, 'description': course.description} for course in courses]
-    return jsonify({'courses': output})
-
-
 @flask_app.route('/enrolments', methods=['GET'])
 def get_enrolment():
     students = Enrolment.query.all()
     output = [{'student': student.student, 'course': student.course, } for student in students]
     return jsonify({'enrolled': output})
+
+
+@flask_app.route('/courses', methods=['GET'])
+def get_courses():
+    courses = Course.query.all()
+    output = [{'id': course.id, 'title': course.title, 'description': course.description} for course in courses]
+    return jsonify({'courses': output})
 
 
 @flask_app.route('/courses', methods=['POST'])
@@ -74,7 +74,7 @@ def add_course():
     db.session.add(new_course)
     db.session.commit()
 
-    return jsonify({'message': 'Course added successfully', 'course': {'id': new_course.id, 'title': new_course.title, 'description': new_course.description}})
+    return 201
 
 
 @flask_app.route('/students', methods=['POST'])
@@ -90,7 +90,7 @@ def add_student():
     db.session.add(new_student)
     db.session.commit()
 
-    return jsonify({'message': 'Student added successfully', 'student': {'id': new_student.id, 'name': new_student.name, 'email': new_student.email}})
+    return 201
 
 
 @flask_app.route('/students/<int:student_id>/enroll', methods=['POST'])
@@ -110,7 +110,7 @@ def enroll_student(student_id):
     student.courses.append(course)
 
     db.session.commit()
-    return jsonify({'message': f'Student with ID {student_id} enrolled in course with ID {course_id} successfully'})
+    return 201
 
 
 @flask_app.route('/students/<int:student_id>', methods=['PUT'])
@@ -132,7 +132,7 @@ def update_student(student_id):
 
     db.session.commit()
 
-    return jsonify({'message': f'Student with ID {student_id} updated successfully'})
+    return 200
 
 
 @flask_app.route('/courses/<int:course_id>', methods=['PUT'])
@@ -152,7 +152,7 @@ def update_course(course_id):
 
     db.session.commit()
 
-    return jsonify({'message': f'Course with ID {course_id} updated successfully'})
+    return 200
 
 
 @flask_app.route('/students/<int:student_id>', methods=['DELETE'])
@@ -164,7 +164,7 @@ def delete_student(student_id):
     db.session.delete(student)
     db.session.commit()
 
-    return jsonify({'message': f'Student with ID {student_id} deleted successfully'})
+    return 200
 
 
 @flask_app.route('/students', methods=['DELETE'])
@@ -173,7 +173,7 @@ def delete_all_students():
     num_deleted = Student.query.delete()
     db.session.commit()
 
-    return jsonify({'message': f'{num_deleted} students deleted successfully'})
+    return 200
 
 
 @flask_app.route('/courses', methods=['DELETE'])
@@ -181,7 +181,7 @@ def delete_all_courses():
     # Delete all students from the database
     num_deleted = Course.query.delete()
     db.session.commit()
-    return jsonify({'message': f'{num_deleted} students deleted successfully'})
+    return 200
 
 
 @flask_app.route('/courses/<int:course_id>', methods=['DELETE'])
@@ -193,7 +193,7 @@ def delete_course(course_id):
     db.session.delete(course)
     db.session.commit()
 
-    return jsonify({'message': f'Course with ID {course_id} deleted successfully'})
+    return 200
 
 
 @flask_app.route('/students/<int:student_id>/enroll/<int:course_id>', methods=['DELETE'])
@@ -212,9 +212,7 @@ def un_enroll_student(student_id, course_id):
     student.courses.remove(course)
     db.session.commit()
 
-    return jsonify({'message': f'Student with ID {student_id} un enrolled from course with ID {course_id} successfully'})
-
-
+    return 200
 
 
 
