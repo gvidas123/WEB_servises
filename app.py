@@ -47,6 +47,13 @@ def get_students():
     return jsonify({'students': output})
 
 
+@flask_app.route('/courses', methods=['GET'])
+def get_courses():
+    courses = Course.query.all()
+    output = [{'id': course.id, 'title': course.title, 'description': course.description} for course in courses]
+    return jsonify({'courses': output})
+
+
 @flask_app.route('/enrolments', methods=['GET'])
 def get_enrolment():
     students = Enrolment.query.all()
@@ -208,11 +215,7 @@ def un_enroll_student(student_id, course_id):
     return jsonify({'message': f'Student with ID {student_id} un enrolled from course with ID {course_id} successfully'})
 
 
-@flask_app.route('/courses', methods=['GET'])
-def get_courses():
-    courses = Course.query.all()
-    output = [{'id': course.id, 'title': course.title, 'description': course.description} for course in courses]
-    return jsonify({'courses': output})
+
 
 
 if __name__ == '__main__':
